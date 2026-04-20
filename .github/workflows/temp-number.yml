@@ -1,0 +1,78 @@
+name: Temp Number Full Selector
+
+on:
+  workflow_dispatch:
+    inputs:
+      country_index:
+        description: "Select country (1–10)"
+        required: true
+        default: "1"
+      number_index:
+        description: "Select number (1–10)"
+        required: true
+        default: "1"
+
+jobs:
+  temp-number:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y curl grep sed
+
+      # 🌍 STEP 1: Get countries
+      - name: Fetch country list
+        run: |
+          echo "🌍 Available countries:"
+          echo ""
+
+          curl -s https://temp-number.com/ > countries.html
+
+          grep -oE '/country/[a-zA-Z]+' countries.html | sort -u | head -n 10 > countries.txt
+
+          nl countries.txt | sed 's#/#https://temp-number.com/#'
+
+      # 🌍 STEP 2: Select country
+      - name: Select country
+        run: |
+          INDEX=${{ github.event.inputs.country_index }}
+
+          COUNTRY_PATH=$(sed -n "${INDEX}p" countries.txt)
+          COUNTRY_URL="https://temp-number.com${COUNTRY_PATH}"
+
+          echo ""
+          echo "🌍 Selected country:"
+          echo "$COUNTRY_URL"
+          echo ""
+
+          curl -s "$COUNTRY_URL" > numbers.html
+
+      # 📱 STEP 3: List numbers
+      - name: Fetch numbers
+        run: |
+          echo "📱 Available numbers:"
+          echo ""
+
+          grep -oE '/number/[0-9]+' numbers.html | sort -u | head -n 10 > numbers.txt
+
+          nl numbers.txt | sed 's#/#https://temp-number.com/#'
+
+      # 📥 STEP 4: Select number + inbox
+      - name: Check inbox
+        run: |
+          INDEX=${{ github.event.inputs.number_index }}
+
+          NUMBER_PATH=$(sed -n "${INDEX}p" numbers.txt)
+          FULL_URL="https://temp-number.com${NUMBER_PATH}"
+
+          echo ""
+          echo "📥 Selected number:"
+          echo "$FULL_URL"
+          echo ""
+
+          curl -s "$FULL_URL" > inbox.html
+
+          echo "📨 Inbox messages:"
+          echo ""
+
+          grep -oE '<td[^>]*>.*</td>' inbox.html | sed 's/<[^>]*>//g' | sed '/^$/d' | head -n 30
