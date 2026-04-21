@@ -73,7 +73,7 @@ async function startNgrok() {
     console.log("Go to: https://dashboard.ngrok.com/get-started/your-authtoken\n");
 
     const token = await ask("Paste Ngrok Authtoken: ");
-    run(`./ngrok config add-authtoken ${token}`, true);
+    run(`./ngrok authtoken ${token}`, true);
 
     console.clear();
     console.log("Choose ngrok region:");
